@@ -1,2 +1,0 @@
-# RWS ResponsiveWaterStudy
-
