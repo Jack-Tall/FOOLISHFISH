@@ -102,12 +102,9 @@
         const SENS = 1.18;
         let refArea = 0;
         let spilledFill = 0;
-        let prevScreenY = window.screenY;
-        let topHeightOffset = 0;
         let overflowExcess = 0;
         let waveScale = 2;
 
-        // ── 1D wave simulation ──────────────────────────────────────────
         const N = 256;
         let buf = [new Float32Array(N), new Float32Array(N)];
         let cIdx = 0;
@@ -148,7 +145,6 @@
             return h;
         }
 
-        // ── Head tracking ──────────────────────────────────────────────
         let trackState = 'idle';
         const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
@@ -362,8 +358,7 @@
                 refArea = W * H;
                 refAreaSet = true;
             }
-            const effectiveH = H - topHeightOffset;
-            const ratio = (W * effectiveH) / refArea;
+            const ratio = (W * H) / refArea;
             return Math.max(0, 0.5 + (1 - ratio) * SENS - spilledFill);
         }
 
@@ -379,11 +374,6 @@
 
             const dW = W - lastW,
                 dH = H - lastH;
-            const newScreenY = window.screenY;
-            if (dH !== 0) {
-                topHeightOffset += prevScreenY - newScreenY;
-            }
-            prevScreenY = newScreenY;
             const prevArea = lastW * lastH;
             lastW = W;
             lastH = H;
@@ -411,14 +401,13 @@
         fillDisplay = fillTarget;
         window.addEventListener('resize', resize);
 
-        // ── Fish ──────────────────────────────────────────────────────
         const FISH_VBW = 616,
             FISH_VBH = 258;
         const FISH_SCALE = 130 / FISH_VBW;
         const FISH_RIGHT = (FISH_VBW / 2) * FISH_SCALE;
         const FISH_LEFT = FISH_RIGHT;
         const FISH_TOP_EXTENT = (FISH_VBH / 2) * FISH_SCALE + 6;
-        const BASE_MIN_SUB = 28 + FISH_TOP_EXTENT; // ~61 px
+        const BASE_MIN_SUB = 28 + FISH_TOP_EXTENT;
 
         const lineD = (x1, y1, x2, y2) => `M${x1} ${y1}L${x2} ${y2}`;
         const polyD = (p) => { let d = `M${p[0]} ${p[1]}`; for (let i = 2; i < p.length; i += 2) d += `L${p[i]} ${p[i+1]}`; return d; };
@@ -655,7 +644,6 @@
         let panicUntil = 0;
         let prevGAngle = 0;
 
-        // ── CORE FIX: adaptive minSub for shallow water ──────────────
         function updateFish(dt) {
             fish.t += dt;
 
@@ -714,7 +702,6 @@
             }
             fish.prevAbove = aboveWater;
 
-            // ── DRAGGING + THROW ──────────────────────────────────────
             if (dragging) {
                 const tx = dragLX + dragOffX,
                     ty = dragLY + dragOffY;
@@ -841,7 +828,6 @@
             if (fish.y >= H - 26 && fish.vy > 0) fish.vy *= -0.2;
         }
 
-        // ── Dither water field ──────────────────────────────────────
         function drawDither() {
             const cg = surfCos,
                 sg = surfSin,
@@ -906,7 +892,6 @@
             }
         }
 
-        // ── Overflow ─────────────────────────────────────────────────
         const drops = [];
         let spilling = false;
         const DRAIN_FILL = 0.94;
@@ -986,7 +971,6 @@
             }
         }
 
-        // ── Main loop ─────────────────────────────────────────────────
         let last = performance.now();
 
         (function loop(now) {
@@ -1042,7 +1026,6 @@
             requestAnimationFrame(loop);
         })(last);
 
-        // ── Pointer interaction ─────────────────────────────────────
         function screenToLogical(clientX, clientY) {
             return [clientX, clientY];
         }
